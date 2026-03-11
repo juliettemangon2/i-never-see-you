@@ -1,0 +1,23 @@
+:root {
+    --pink: #ff92d3;
+    --magenta: #ff00ff;
+    --black: #000;
+    --red: #000000;
+    --gray: #e4ebf6;
+}
+
+::selection {
+    color: var(--black);
+    background: var(--pink);
+}
+
+::-moz-selection {
+    color: var(--black);
+    background: var(--pink);
+}
+
+
+.nav-buttons a:hover {
+    text-decoration: none;
+    background-color: var(--pink);
+}
