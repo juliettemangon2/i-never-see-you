@@ -21,3 +21,7 @@
     text-decoration: none;
     background-color: var(--pink);
 }
+
+p {
+    margin-bottom: 4rem;
+}
