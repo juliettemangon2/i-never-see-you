@@ -182,7 +182,7 @@ function injectPhase2Styles() {
         }
         .phase2-split-inner {
             display: flex;
-            gap: 4rem;
+            gap: 0.5rem;
             width: 100%;
             max-width: 1200px;
             align-items: center;
@@ -617,7 +617,7 @@ function buildPhase2Overlay(cfg) {
             img.alt = '';
             img.loading = 'lazy';
             img.addEventListener('click', () => showNavLightbox(idx));
-            (side === 'right' ? rightHalf : leftHalf).appendChild(img);
+            (side === 'right' ? leftHalf : rightHalf).appendChild(img);
         });
 
         inner.appendChild(leftHalf);
