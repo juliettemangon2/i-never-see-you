@@ -1,5 +1,11 @@
 let phase2StylesInjected = false;
 
+const allPhase2Controllers = [];
+window.addEventListener('pagehide', () => {
+    allPhase2Controllers.forEach(c => c.destroy());
+    allPhase2Controllers.length = 0;
+});
+
 function injectPhase2Styles() {
     if (phase2StylesInjected) return;
     phase2StylesInjected = true;
@@ -446,6 +452,16 @@ function buildPhase2Overlay(cfg) {
     if (cfg.closeColor) overlay.style.color = cfg.closeColor;
 
     let videoEl = null;
+    let lightbox = null;
+    let navLightbox = null;
+    let lb = null;
+    let gridVideos = [];
+    const keyHandlers = [];
+
+    function addKeyHandler(fn) {
+        keyHandlers.push(fn);
+        document.addEventListener('keydown', fn);
+    }
 
     if (cfg.type === 'video') {
         const wrap = document.createElement('div');
@@ -468,8 +484,7 @@ function buildPhase2Overlay(cfg) {
         const grid = document.createElement('div');
         grid.className = 'phase2-grid';
 
-        // lightbox
-        const lightbox = document.createElement('div');
+        lightbox = document.createElement('div');
         lightbox.className = 'phase2-lightbox';
         const lightboxImg = document.createElement('img');
         lightboxImg.alt = '';
@@ -491,7 +506,7 @@ function buildPhase2Overlay(cfg) {
 
         lightboxClose.addEventListener('click', (e) => { e.stopPropagation(); closeLightbox(); });
         lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+        addKeyHandler((e) => { if (e.key === 'Escape') closeLightbox(); });
 
         document.body.appendChild(lightbox);
 
@@ -542,8 +557,7 @@ function buildPhase2Overlay(cfg) {
         const allSrcs = cfg.items.map(i => i.src);
         let currentIndex = 0;
 
-        // nav lightbox
-        const navLightbox = document.createElement('div');
+        navLightbox = document.createElement('div');
         navLightbox.className = 'phase2-nav-lightbox';
 
         const navImg = document.createElement('img');
@@ -585,7 +599,7 @@ function buildPhase2Overlay(cfg) {
         prevBtn.addEventListener('click', (e) => { e.stopPropagation(); showNavLightbox(currentIndex - 1); });
         nextBtn.addEventListener('click', (e) => { e.stopPropagation(); showNavLightbox(currentIndex + 1); });
 
-        document.addEventListener('keydown', (e) => {
+        addKeyHandler((e) => {
             if (!navLightbox.classList.contains('active')) return;
             if (e.key === 'Escape') closeNavLightbox();
             else if (e.key === 'ArrowLeft') showNavLightbox(currentIndex - 1);
@@ -621,10 +635,8 @@ function buildPhase2Overlay(cfg) {
 
         const allItems = cfg.items;
         let currentIndex = 0;
-        let gridVideos = [];
 
-        // Build lightbox
-        const lb = document.createElement('div');
+        lb = document.createElement('div');
         lb.className = 'phase2-mixed-lightbox';
 
         const lbImg = document.createElement('img');
@@ -707,7 +719,7 @@ function buildPhase2Overlay(cfg) {
         lbPrev.addEventListener('click', (e) => { e.stopPropagation(); showLightbox(currentIndex - 1); });
         lbNext.addEventListener('click', (e) => { e.stopPropagation(); showLightbox(currentIndex + 1); });
 
-        document.addEventListener('keydown', (e) => {
+        addKeyHandler((e) => {
             if (!lb.classList.contains('active')) return;
             if (e.key === 'Escape') closeLightbox();
             else if (e.key === 'ArrowLeft') showLightbox(currentIndex - 1);
@@ -721,7 +733,6 @@ function buildPhase2Overlay(cfg) {
             }
         });
 
-        // Build grid items
         allItems.forEach((item, idx) => {
             const cell = document.createElement('div');
             cell.className = 'phase2-mixed-grid-item';
@@ -752,8 +763,6 @@ function buildPhase2Overlay(cfg) {
         wrap.appendChild(grid);
         overlay.appendChild(wrap);
 
-        // Store grid videos for play/pause on overlay open/close
-        overlay._gridVideos = gridVideos;
         overlay._closeLightbox = closeLightbox;
     }
 
@@ -777,8 +786,8 @@ function buildPhase2Overlay(cfg) {
             videoEl.currentTime = 0;
             videoEl.play().catch(() => { });
         }
-        if (overlay._gridVideos) {
-            overlay._gridVideos.forEach(v => v.play().catch(() => { }));
+        if (gridVideos.length) {
+            gridVideos.forEach(v => v.play().catch(() => { }));
         }
     }
 
@@ -788,20 +797,33 @@ function buildPhase2Overlay(cfg) {
             videoEl.pause();
             videoEl.currentTime = 0;
         }
-        if (overlay._gridVideos) {
-            overlay._gridVideos.forEach(v => v.pause());
+        if (gridVideos.length) {
+            gridVideos.forEach(v => v.pause());
         }
         if (overlay._closeLightbox) {
             overlay._closeLightbox();
         }
     }
 
+    function destroy() {
+        close();
+        keyHandlers.forEach(fn => document.removeEventListener('keydown', fn));
+        keyHandlers.length = 0;
+        if (videoEl) { videoEl.pause(); videoEl.src = ''; videoEl.load(); }
+        gridVideos.forEach(v => { v.pause(); v.src = ''; v.load(); });
+        gridVideos.length = 0;
+        lightbox?.remove();
+        navLightbox?.remove();
+        lb?.remove();
+        overlay.remove();
+    }
+
     closeBtn.addEventListener('click', close);
     overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    addKeyHandler((e) => { if (e.key === 'Escape') close(); });
 
     document.body.appendChild(overlay);
-    return { open };
+    return { open, destroy };
 }
 
 /**
@@ -881,6 +903,7 @@ function createGallery({
             item.addEventListener('click', () => {
                 if (!phase2Controller) {
                     phase2Controller = buildPhase2Overlay(phase2);
+                    allPhase2Controllers.push(phase2Controller);
                 }
                 phase2Controller.open();
             });
