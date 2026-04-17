@@ -679,7 +679,7 @@ function buildPhase2Overlay(cfg) {
                 lbPlayPause.classList.add('visible');
                 lbVideo.src = item.src;
                 lbVideo.load();
-                lbVideo.play().catch(() => {});
+                lbVideo.play().catch(() => { });
             } else {
                 lbVideo.style.display = 'none';
                 lbImg.style.display = 'block';
@@ -699,7 +699,7 @@ function buildPhase2Overlay(cfg) {
 
         lbPlayPause.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (lbVideo.paused) lbVideo.play().catch(() => {});
+            if (lbVideo.paused) lbVideo.play().catch(() => { });
             else lbVideo.pause();
         });
         lbClose.addEventListener('click', (e) => { e.stopPropagation(); closeLightbox(); });
@@ -715,7 +715,7 @@ function buildPhase2Overlay(cfg) {
             else if (e.key === ' ') {
                 e.preventDefault();
                 if (allItems[currentIndex].mediaType === 'video') {
-                    if (lbVideo.paused) lbVideo.play().catch(() => {});
+                    if (lbVideo.paused) lbVideo.play().catch(() => { });
                     else lbVideo.pause();
                 }
             }
@@ -775,10 +775,10 @@ function buildPhase2Overlay(cfg) {
         overlay.classList.add('active');
         if (videoEl) {
             videoEl.currentTime = 0;
-            videoEl.play().catch(() => {});
+            videoEl.play().catch(() => { });
         }
         if (overlay._gridVideos) {
-            overlay._gridVideos.forEach(v => v.play().catch(() => {}));
+            overlay._gridVideos.forEach(v => v.play().catch(() => { }));
         }
     }
 
@@ -874,10 +874,16 @@ function createGallery({
     document.getElementById(containerId).appendChild(section);
 
     if (phase2) {
-        const { open } = buildPhase2Overlay(phase2);
+        let phase2Controller = null;
+
         items.forEach((item) => {
             item.style.cursor = 'pointer';
-            item.addEventListener('click', open);
+            item.addEventListener('click', () => {
+                if (!phase2Controller) {
+                    phase2Controller = buildPhase2Overlay(phase2);
+                }
+                phase2Controller.open();
+            });
         });
     }
 }

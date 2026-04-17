@@ -254,7 +254,8 @@
 
     <script src="gallery.js"></script>
     <script>
-        createGallery({
+        const galleryConfigs = [
+        {
             containerId: 'galleries',
             folderPath: 'carousels/carousel0/alex',
             title: 'Light & Shadow',
@@ -289,16 +290,16 @@
                 bgColor: '#fff',
                 title: '"Noise"'
             }
-        });
-        createGallery({
+        },
+
+        {
             containerId: 'galleries',
             folderPath: 'carousels/carousel0/riley',
             title: 'Born to dance',
-            artist: 'Riley Daggs',
+            artist: 'Riley Daggs'
+        },
 
-
-        });
-        createGallery({
+        {
             containerId: 'galleries',
             folderPath: 'carousels/carousel0/juliette',
             title: 'Ordered pairs',
@@ -313,8 +314,8 @@
                     { src: 'carousels/carousel0/juliette/phase2/lucas.jpeg', reveal: 'carousels/carousel0/juliette/1.webp' }
                 ]
             }
-        });
-        createGallery({
+        },
+        {
             containerId: 'galleries',
             folderPath: 'carousels/carousel0/mila',
             title: 'Elements',
@@ -343,12 +344,8 @@
                 'mobile/Slide 9.webp',
                 'mobile/Slide 10 .webp'
             ]
-        });
-
-
-
-
-        createGallery({
+        },
+                {
             containerId: 'galleries',
             folderPath: 'carousels/carousel0/amandine',
             title: 'Flesh Out',
@@ -379,22 +376,22 @@
                 'mobile/YearOfTheHorse.webp'
 
             ]
-        });
-        createGallery({
+        },
+        {
             containerId: 'galleries',
             folderPath: 'carousels/carousel0/sabine',
             title: 'Trial &',
             artist: 'Sabine Hickey',
-        });
+        },
 
-        createGallery({
+        {
             containerId: 'galleries',
             folderPath: 'carousels/carousel0/nika',
             title: 'Pillars',
             artist: 'Nika Yarov',
-        });
+        },
 
-        createGallery({
+        {
             containerId: 'galleries',
             folderPath: 'carousels/carousel0/clay',
             title: 'Exodus 31:18',
@@ -416,22 +413,20 @@
                     { src: 'carousels/carousel0/clay/phase2/j1 right - white.jpg', side: 'right' }
                 ]
             }
-        });
-        createGallery({
+        },
+        {
             containerId: 'galleries',
             folderPath: 'carousels/carousel0/julia',
             title: 'Duality',
             artist: 'Julia Majchrzak',
-        });
-        createGallery({
+        },
+       {
             containerId: 'galleries',
             folderPath: 'carousels/carousel0/lucas',
             title: 'Primary',
             artist: 'Lucas De Moura',
-        });
-
-
-        createGallery({
+        },
+{
             containerId: 'galleries',
             folderPath: 'carousels/carousel0/dominic',
             title: 'Convolve',
@@ -454,13 +449,42 @@
                     { src: 'carousels/carousel0/dominic/phase2/10.png', mediaType: 'image' }
                 ],
             }
-        });
-        createGallery({
+        },
+        {
             containerId: 'galleries',
             folderPath: 'carousels/carousel0/iris',
             title: 'Axis',
             artist: 'Iris O\'Connor',
+        }
+
+    ];
+
+    const galleriesRoot = document.getElementById('galleries');
+
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+
+            const el = entry.target;
+            const index = Number(el.dataset.index);
+            createGallery(galleryConfigs[index]);
+            obs.unobserve(el);
+            el.remove();
         });
+    }, {
+        rootMargin: '600px 0px'
+    });
+
+    galleryConfigs.forEach((config, index) => {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'gallery-placeholder';
+        placeholder.dataset.index = index;
+        placeholder.style.minHeight = '220px';
+        galleriesRoot.appendChild(placeholder);
+        observer.observe(placeholder);
+    });
+</script>
+
 
 
 
