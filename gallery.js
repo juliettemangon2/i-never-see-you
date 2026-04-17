@@ -443,6 +443,7 @@ function buildPhase2Overlay(cfg) {
     const overlay = document.createElement('div');
     overlay.className = 'phase2-overlay';
     overlay.style.background = cfg.bgColor || '#fff';
+    if (cfg.closeColor) overlay.style.color = cfg.closeColor;
 
     let videoEl = null;
 
@@ -767,6 +768,7 @@ function buildPhase2Overlay(cfg) {
     closeBtn.className = 'phase2-close';
     closeBtn.setAttribute('aria-label', 'Close');
     closeBtn.textContent = '×';
+    if (cfg.closeColor) closeBtn.style.color = cfg.closeColor;
     overlay.appendChild(closeBtn);
 
     function open() {
