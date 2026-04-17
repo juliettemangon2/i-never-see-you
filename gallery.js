@@ -816,8 +816,18 @@ function buildPhase2Overlay(cfg) {
  * @param {string} options.artist
  * @param {object} [options.phase2]  { type, src, bgColor, title, items }
  */
-function createGallery({ containerId, folderPath, title, artist, count = 10, fileNames, phase2 }) {
+function createGallery({
+    containerId,
+    folderPath,
+    title,
+    artist,
+    count = 10,
+    fileNames,
+    mobileFileNames,
+    phase2
+}) {
     const names = fileNames || Array.from({ length: count }, (_, i) => `${i + 1}.webp`);
+    const isMobile = window.matchMedia('(max-width: 700px)').matches;
 
     const section = document.createElement('div');
     section.className = 'gallery-section';
@@ -831,14 +841,21 @@ function createGallery({ containerId, folderPath, title, artist, count = 10, fil
     strip.className = 'gallery-strip';
 
     const items = [];
-    names.forEach((name) => {
+    names.forEach((name, index) => {
         const item = document.createElement('div');
         item.className = 'gallery-item';
 
         const img = document.createElement('img');
-        img.src = `${folderPath}/${name}`;
+        const desktopSrc = `${folderPath}/${name}`;
+        const mobileSrc = mobileFileNames?.[index]
+            ? `${folderPath}/${mobileFileNames[index]}`
+            : desktopSrc;
+
+        img.src = isMobile ? mobileSrc : desktopSrc;
         img.alt = '';
         img.loading = 'lazy';
+        img.decoding = 'async';
+        img.fetchPriority = 'low';
 
         item.appendChild(img);
         strip.appendChild(item);
