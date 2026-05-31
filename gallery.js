@@ -201,11 +201,9 @@ function injectPhase2Styles() {
             cursor: pointer;
             display: block;
             object-fit: cover;
-            transition: transform 0.12s border-color 0.12s;
-            border: 1px solid #fff;
+            transition: transform 0.12s;
         }
         .phase2-split-half img:hover {
-            border: 1px solid #000;
         }
 
         /* nav-lightbox: white bg, arrow keys */
@@ -439,6 +437,42 @@ function injectPhase2Styles() {
                 gap: 0.25rem;
             }
         }
+
+        /* ── full-width-strip layout ── */
+        .phase2-fullstrip-wrap {
+            flex: 1;
+            width: 100%;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            padding-top: 3rem;
+            box-sizing: border-box;
+        }
+        .phase2-fullstrip {
+            display: grid;
+            grid-template-columns: repeat(var(--strip-cols, 10), 1fr);
+            width: 100%;
+            align-items: center;
+        }
+        .phase2-fullstrip-item {
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .phase2-fullstrip-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        @media (max-width: 700px) {
+            .phase2-fullstrip-wrap {
+                padding-top: 3.5rem;
+                align-items: flex-start;
+                overflow-y: auto;
+            }
+            .phase2-fullstrip {
+                grid-template-columns: repeat(var(--strip-mobile-cols, 5), 1fr);
+            }
+        }
     `;
     document.head.appendChild(style);
 }
@@ -623,6 +657,32 @@ function buildPhase2Overlay(cfg) {
         inner.appendChild(leftHalf);
         inner.appendChild(rightHalf);
         wrap.appendChild(inner);
+        overlay.appendChild(wrap);
+    } else if (cfg.type === 'full-width-strip') {
+        const wrap = document.createElement('div');
+        wrap.className = 'phase2-fullstrip-wrap';
+
+        const grid = document.createElement('div');
+        grid.className = 'phase2-fullstrip';
+
+        const n = cfg.items.length;
+        grid.style.setProperty('--strip-cols', n);
+        grid.style.setProperty('--strip-mobile-cols', Math.ceil(n / 2));
+
+        cfg.items.forEach(({ src }) => {
+            const item = document.createElement('div');
+            item.className = 'phase2-fullstrip-item';
+
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = '';
+            img.loading = 'lazy';
+
+            item.appendChild(img);
+            grid.appendChild(item);
+        });
+
+        wrap.appendChild(grid);
         overlay.appendChild(wrap);
     }
 
