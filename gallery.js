@@ -886,18 +886,6 @@ function buildPhase2Overlay(cfg) {
     return { open, destroy };
 }
 
-/**
- * createGallery — renders a horizontal 10-image strip into a container.
- *
- * @param {object} options
- * @param {string} options.containerId
- * @param {string} options.folderPath
- * @param {string} options.title
- * @param {number} [options.count=10]
- * @param {string[]} [options.fileNames]
- * @param {string} options.artist
- * @param {object} [options.phase2]  { type, src, bgColor, title, items }
- */
 function createGallery({
     containerId,
     folderPath,
@@ -914,23 +902,41 @@ function createGallery({
     const section = document.createElement('div');
     section.className = 'gallery-section';
 
-    const heading = document.createElement('h2');
-    heading.className = 'gallery-title';
-    heading.textContent = title;
-    section.appendChild(heading);
+    const orbitWrap = document.createElement('div');
+    orbitWrap.className = 'gallery-orbit-wrap';
 
-    const strip = document.createElement('div');
-    strip.className = 'gallery-strip';
+    const orbit = document.createElement('div');
+    orbit.className = 'gallery-orbit';
 
-    const items = [];
-    names.forEach((name, index) => {
+    const n = names.length;
+    // Image centers sit at 39% of the orbit diameter from the orbit center.
+    // With image size ~20% of the diameter, edges reach ~49% — just inside the circle boundary.
+    const radiusPct = 39;
+
+    names.forEach((name, i) => {
         const item = document.createElement('div');
-        item.className = 'gallery-item';
+        item.className = 'gallery-orbit-item';
+
+        // Start from the top (−90°) and space evenly
+        const angleDeg = (i / n) * 360 - 90;
+        const angleRad = (angleDeg * Math.PI) / 180;
+        const sinA = Math.sin(angleRad);
+        const cosA = Math.cos(angleRad);
+
+        // Position image center at (50% + cos*r%, 50% + sin*r%), offset by half image size
+        item.style.top  = `calc(50% + ${(sinA * radiusPct).toFixed(3)}% - var(--img-size, clamp(36px, 5vw, 56px)) / 2)`;
+        item.style.left = `calc(50% + ${(cosA * radiusPct).toFixed(3)}% - var(--img-size, clamp(36px, 5vw, 56px)) / 2)`;
+        item.style.setProperty('--drift-delay', `${(i * 0.32).toFixed(2)}s`);
+
+        const imgWrap = document.createElement('div');
+        imgWrap.className = 'gallery-orbit-img-wrap';
 
         const img = document.createElement('img');
+        img.className = 'gallery-orbit-img';
+
         const desktopSrc = `${folderPath}/${name}`;
-        const mobileSrc = mobileFileNames?.[index]
-            ? `${folderPath}/${mobileFileNames[index]}`
+        const mobileSrc = mobileFileNames?.[i]
+            ? `${folderPath}/${mobileFileNames[i]}`
             : desktopSrc;
 
         img.src = isMobile ? mobileSrc : desktopSrc;
@@ -939,34 +945,137 @@ function createGallery({
         img.decoding = 'async';
         img.fetchPriority = 'low';
 
-        item.appendChild(img);
-        strip.appendChild(item);
-        items.push(item);
+        imgWrap.appendChild(img);
+        item.appendChild(imgWrap);
+        orbit.appendChild(item);
     });
 
-    section.appendChild(strip);
+    orbitWrap.appendChild(orbit);
+
+    // Centered title + artist
+    const center = document.createElement('div');
+    center.className = 'gallery-orbit-center';
+
+    const titleEl = document.createElement('h2');
+    titleEl.className = 'gallery-orbit-title';
+    titleEl.textContent = title;
+    center.appendChild(titleEl);
 
     if (artist) {
         const artistEl = document.createElement('p');
-        artistEl.className = 'gallery-artist';
+        artistEl.className = 'gallery-orbit-artist';
         artistEl.textContent = artist;
-        section.appendChild(artistEl);
+        center.appendChild(artistEl);
     }
 
+    orbitWrap.appendChild(center);
+    section.appendChild(orbitWrap);
     document.getElementById(containerId).appendChild(section);
 
     if (phase2) {
         let phase2Controller = null;
-
-        items.forEach((item) => {
-            item.style.cursor = 'pointer';
-            item.addEventListener('click', () => {
-                if (!phase2Controller) {
-                    phase2Controller = buildPhase2Overlay(phase2);
-                    allPhase2Controllers.push(phase2Controller);
-                }
-                phase2Controller.open();
-            });
+        orbitWrap.addEventListener('click', () => {
+            if (!phase2Controller) {
+                phase2Controller = buildPhase2Overlay(phase2);
+                allPhase2Controllers.push(phase2Controller);
+            }
+            phase2Controller.open();
         });
     }
+}
+
+function startFreeRoam(containerId) {
+    requestAnimationFrame(() => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const sections = Array.from(container.querySelectorAll('.gallery-section'));
+        if (!sections.length) return;
+
+        const n = sections.length;
+
+        // Measure orb size from the first rendered orb
+        const firstOrb = sections[0].querySelector('.gallery-orbit-wrap');
+        const orbSize = firstOrb ? firstOrb.offsetWidth : 220;
+
+        // Set universe height so orbs have ample vertical space to roam
+        const universeH = Math.max(Math.round(window.innerHeight * 1.5), 900);
+        container.style.height = universeH + 'px';
+
+        // Cache container bounds; update on resize
+        let W = container.offsetWidth;
+        let H = container.offsetHeight;
+        window.addEventListener('resize', () => {
+            W = container.offsetWidth;
+            H = container.offsetHeight;
+        });
+
+        // Grid-based initial placement so orbs are evenly spread, not clustered
+        const cols = Math.max(2, Math.ceil(Math.sqrt(n * W / H)));
+        const rows = Math.ceil(n / cols);
+        const cellW = W / cols;
+        const cellH = H / rows;
+
+        const states = sections.map((section, i) => {
+            const orb = section.querySelector('.gallery-orbit-wrap');
+            const size = orb ? orb.offsetWidth : orbSize;
+
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+
+            // Random spot within each grid cell, inset from cell edges
+            const padding = size * 0.3;
+            const x = col * cellW + padding + Math.random() * Math.max(0, cellW - size - padding * 2);
+            const y = row * cellH + padding + Math.random() * Math.max(0, cellH - size - padding * 2);
+
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 0.22 + Math.random() * 0.2;
+
+            section.style.transform = `translate(${x}px, ${y}px)`;
+
+            return { section, x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, size };
+        });
+
+        let rafId;
+
+        function tick() {
+            const offscreen = 0.1;
+
+            states.forEach(s => {
+                // Tiny brownian nudge for organic wandering
+                s.vx += (Math.random() - 0.5) * 0.007;
+                s.vy += (Math.random() - 0.5) * 0.007;
+
+                const spd = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
+                const maxSpd = 0.42, minSpd = 0.1;
+                if (spd > maxSpd) {
+                    s.vx = (s.vx / spd) * maxSpd;
+                    s.vy = (s.vy / spd) * maxSpd;
+                } else if (spd > 0 && spd < minSpd) {
+                    s.vx = (s.vx / spd) * minSpd;
+                    s.vy = (s.vy / spd) * minSpd;
+                }
+
+                s.x += s.vx;
+                s.y += s.vy;
+
+                // Bounce 10% of orb size past container edge
+                const margin = s.size * offscreen;
+                const minX = -margin,        maxX = W - s.size + margin;
+                const minY = -margin,        maxY = H - s.size + margin;
+
+                if (s.x <= minX) { s.x = minX; s.vx =  Math.abs(s.vx); }
+                else if (s.x >= maxX) { s.x = maxX; s.vx = -Math.abs(s.vx); }
+                if (s.y <= minY) { s.y = minY; s.vy =  Math.abs(s.vy); }
+                else if (s.y >= maxY) { s.y = maxY; s.vy = -Math.abs(s.vy); }
+
+                s.section.style.transform = `translate(${s.x}px, ${s.y}px)`;
+            });
+
+            rafId = requestAnimationFrame(tick);
+        }
+
+        rafId = requestAnimationFrame(tick);
+        window.addEventListener('pagehide', () => cancelAnimationFrame(rafId), { once: true });
+    });
 }

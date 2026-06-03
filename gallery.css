@@ -1,61 +1,134 @@
-.gallery-section {
-    margin-bottom: 3rem;
-    width: 100vw;
+/* ── Galleries universe: tall scrollable in-flow container ── */
+#galleries {
     position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.gallery-title {
-    font-size: clamp(1rem, 2.5vw, 1.5rem);
-    font-weight: 400;
-    margin-bottom: 0.75rem;
-    letter-spacing: 0.01em;
-    padding: 0 1.5rem;
-}
-
-.gallery-strip {
-    display: flex;
-    gap: 3px;
     width: 100%;
-    align-items: center;
+    /* height set by startFreeRoam based on viewport */
+    overflow: hidden;
 }
 
-.gallery-item {
-    flex: 1 1 0;
-    min-width: 0;
+/* ── Orbit section: JS positions this via transform ── */
+.gallery-section {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    will-change: transform;
 }
 
-.gallery-item img {
+/* ── Orbit wrapper (the visual circle) ── */
+.gallery-orbit-wrap {
+    position: relative;
+    width: clamp(190px, 22vw, 280px);
+    height: clamp(190px, 22vw, 280px);
+    border-radius: 50%;
+    flex-shrink: 0;
+    pointer-events: all;
+    cursor: pointer;
+    transition: transform 0.28s ease;
+}
+
+.gallery-orbit-wrap:hover {
+    transform: scale(1.18);
+}
+
+/* ── Rotating ring ── */
+.gallery-orbit {
+    position: absolute;
+    inset: 0;
+    animation: gallery-spin 22s linear infinite;
+}
+
+/* ── Individual item container (positioned via JS) ── */
+.gallery-orbit-item {
+    position: absolute;
+    width: var(--img-size, clamp(36px, 5vw, 56px));
+    height: var(--img-size, clamp(36px, 5vw, 56px));
+}
+
+/* ── Counter-rotation wrapper keeps images upright ── */
+.gallery-orbit-img-wrap {
     width: 100%;
-    height: auto;
+    height: 100%;
+    animation: gallery-counter-spin 22s linear infinite;
+}
+
+/* ── Image with subtle float drift ── */
+.gallery-orbit-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     display: block;
+    animation: gallery-img-drift 2.8s ease-in-out infinite alternate;
+    animation-delay: var(--drift-delay, 0s);
 }
 
-.gallery-artist {
-    font-size: clamp(0.75rem, 1.8vw, 1rem);
+/* ── Center text ── */
+.gallery-orbit-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 5;
+    pointer-events: none;
+    max-width: 52%;
+}
+
+.gallery-orbit-title {
+    font-size: clamp(0.6rem, 1.3vw, 0.85rem);
     font-weight: 400;
-    text-align: right;
-    padding: 0.4rem 1.5rem 0;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    margin-bottom: 0.2rem;
 }
 
+.gallery-orbit-artist {
+   font-size: clamp(0.6rem, 1.3vw, 0.85rem);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    margin-bottom: 0.4rem;
+}
+
+/* ── Keyframes ── */
+@keyframes gallery-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+@keyframes gallery-counter-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(-360deg); }
+}
+
+@keyframes gallery-img-drift {
+    from { transform: scale(1)    translate(0px,  0px); }
+    to   { transform: scale(1.07) translate(4px, -4px); }
+}
+
+/* ── Mobile ── */
 @media (max-width: 700px) {
-    .gallery-strip {
-        gap: 2px;
+    .gallery-orbit-wrap {
+        width: clamp(150px, 42vw, 200px);
+        height: clamp(150px, 42vw, 200px);
     }
-
-    .gallery-title {
-        padding: 0 1rem;
+    .gallery-orbit-item {
+        --img-size: clamp(28px, 8vw, 38px);
     }
-
-    .gallery-section {
-        margin-bottom: 2rem;
+    .gallery-orbit-title {
+        font-size: clamp(0.58rem, 3.5vw, 0.78rem);
+    }
+    .gallery-orbit-artist {
+        font-size: clamp(0.5rem, 3vw, 0.65rem);
     }
 }
 
 @media (max-width: 420px) {
-    .gallery-strip {
-        gap: 1px;
+    .gallery-orbit-wrap {
+        width: clamp(130px, 38vw, 160px);
+        height: clamp(130px, 38vw, 160px);
+    }
+    .gallery-orbit-item {
+        --img-size: clamp(24px, 7vw, 30px);
     }
 }
