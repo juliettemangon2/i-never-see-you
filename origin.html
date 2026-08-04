@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Origin — i never see you</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://use.typekit.net/iql0ncy.css">
+      <link rel="canonical" href="https://ineverseeyou.com/origin.html" />
+    <style>
+        :root {
+            --bg: #e5e5e5;
+            --ink: #000;
+            --r1: 80px;
+            --r2: 165px;
+            --r3: 250px;
+            --nav-r: 58px;
+            --pink: #ff92d3;
+        }
+
+        @media (max-width: 650px) {
+            :root {
+                --r1: 48px;
+                --r2: 108px;
+                --r3: 168px;
+                --nav-r: 42px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            :root {
+                --r1: 38px;
+                --r2: 86px;
+                --r3: 134px;
+                --nav-r: 34px;
+            }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            font-family: "parabolica", sans-serif;
+            color: var(--ink);
+            overflow: hidden;
+        }
+
+        canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        /* Orbit rings */
+        .orbit {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            border-radius: 50%;
+            border: 1px solid rgba(0,0,0,0.9);
+            transform: translate(-50%, -50%);
+        }
+
+        .orbit-1 {
+            width: calc(var(--r1) * 2);
+            height: calc(var(--r1) * 2);
+            animation: spin 16s linear infinite;
+        }
+
+        .orbit-2 {
+            width: calc(var(--r2) * 2);
+            height: calc(var(--r2) * 2);
+            animation: spin 32s linear infinite reverse;
+            border-color: rgba(0,0,0,0.8);
+        }
+
+        .orbit-3 {
+            width: calc(var(--r3) * 2);
+            height: calc(var(--r3) * 2);
+            animation: spin 52s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .orb-dot {
+            position: absolute;
+            top: -4px;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            background: var(--ink);
+            border-radius: 50%;
+            transform: translateX(-50%);
+        }
+
+        .orbit-1 .orb-dot { width: 6px; height: 6px; top: -3px; }
+        .orbit-3 .orb-dot { width: 5px; height: 5px; top: -2.5px; opacity: 0.5; }
+
+        /* Axis lines */
+        .axis {
+            position: fixed;
+            background: hsla(344, 81%, 76%, 0.8);
+            pointer-events: none;
+        }
+
+        .axis-h {
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 10px;
+        }
+
+        .axis-v {
+            top: 0;
+            left: 50%;
+            width: 10px;
+            height: 100%;
+        }
+
+        /* Center */
+        .center {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .center-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--ink);
+            border-radius: 50%;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.6); opacity: 0.5; }
+        }
+
+        .center-label {
+            font-size: 0.65rem;
+            letter-spacing: 0.18em;
+            opacity: 0.4;
+        }
+
+        /* Nav circles */
+        .nav-link {
+            position: fixed;
+            top: 50%;
+            width: calc(var(--nav-r) * 2);
+            height: calc(var(--nav-r) * 2);
+            border: 2px solid var(--ink);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            color: var(--ink);
+            text-decoration: none;
+            background: rgba(226, 227, 228, 0.9);
+            font-size: clamp(0.65rem, 1.8vw, 0.85rem);
+            line-height: 1.3;
+            transform: translateY(-50%);
+            z-index: 10;
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+
+        .nav-link small {
+            display: block;
+            font-size: 0.7em;
+            opacity: 0.55;
+            margin-top: 0.15em;
+        }
+
+        .nav-link:hover {
+            background: var(--pink);
+            text-decoration: none;
+        }
+
+       
+
+        .nav-left {
+            left: calc(50% - var(--r2) - var(--nav-r));
+        }
+
+        .nav-right {
+            left: calc(50% + var(--r2) - var(--nav-r));
+        }
+
+        /* Title */
+        .page-title {
+            position: fixed;
+            top: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+            white-space: nowrap;
+        }
+
+        .page-title h1 {
+            font-size: clamp(2rem, 7vw, 5rem);
+            font-weight: 500;
+            line-height: 1;
+            letter-spacing: -0.1rem;
+        }
+
+        .page-title p {
+            font-size: clamp(0.65rem, 1.5vw, 0.85rem);
+            opacity: 0.4;
+            margin-top: 0.4rem;
+        }
+
+        /* Home link */
+        .home-link {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.3rem;
+            color: var(--ink);
+            text-decoration: none;
+            z-index: 10;
+            white-space: nowrap;
+            transition: opacity 0.2s;
+        }
+
+        .home-link:hover {
+            opacity: 0.9;
+            text-decoration: none;
+        }
+
+        /* Fade in on load */
+        body {
+            animation: fadein 1.2s ease both;
+        }
+
+        @keyframes fadein {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+
+<a class="nav-link nav-left" href="sequence.html">
+    Sequence
+</a>
+
+<a class="nav-link nav-right" href="carousel.html">
+    Carousel
+</a>
+
+<div class="page-title">
+    <h1>ORIGIN</h1>
+</div>
+
+<a class="home-link" href="index.html">(home)</a>
+
+<script>
+
+</script>
+
+</body>
+</html>
