@@ -6,7 +6,7 @@
     <title>sequence — i never see you</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://use.typekit.net/iql0ncy.css">
-      <link rel="canonical" href="https://ineverseeyou.com/sequence" />
+    <link rel="canonical" href="https://ineverseeyou.com/sequence" />
 
     <style>
         * {
@@ -15,78 +15,203 @@
             box-sizing: border-box;
         }
 
-        html, body {
+        html,
+        body {
             width: 100%;
-            min-height: 100%;
             background: #b8b8b8;
-            font-family: "parabolica", sans-serif;
+            /* fills any space around the painting */
         }
 
-        .strip {
+        /* painting container: locked to the painting's real pixel ratio
+           (3200 × 7606) so icon percentages always land on the same spot */
+        .page {
+            position: relative;
             width: 100%;
-            height: 50vh;
-            display: flex;
+            margin: 0 auto;
+            aspect-ratio: 3200 / 7606;
         }
 
-        .strip img {
-            flex: 1;
-            min-width: 0;
+        .page>.bg {
+            position: absolute;
+            inset: 0;
             width: 100%;
-            object-fit: cover;
+            height: 100%;
             display: block;
+            pointer-events: none;
+            user-select: none;
         }
 
-        .content {
-            padding: 3rem 2rem;
+        .title {
+            position: absolute;
+            top: max(3vh, env(safe-area-inset-top));
+            left: 0;
+            right: 0;
+            z-index: 2;
+            padding: 2rem;
+            text-align: center;
+            font-size: clamp(1rem, 5vw, 3rem);
+            line-height: 1.1;
+            color: #fff;
+            -webkit-text-stroke: clamp(1px, 0.08em, 4px) #000;
+            paint-order: stroke fill;
+            pointer-events: none;
+            letter-spacing: 0.01em;
+            font-weight: 500;
         }
 
-        h1 {
-            font-size: clamp(2rem, 6vw, 5rem);
-            font-weight: 400;
-            color: #000;
-            letter-spacing: -0.01em;
+        /* icons: x/y/size come from the ICONS array in the script below.
+           --x, --y = % of the painting from its top-left corner
+           --size   = % of the painting's width */
+        .icon {
+            --icon-scale: 1;
+            position: absolute;
+            left: var(--x);
+            top: var(--y);
+            width: calc(var(--size) * var(--icon-scale));
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            display: block;
+            transition: transform 0.2s ease;
         }
 
+        .icon img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .icon:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .icon:focus-visible {
+            outline: 2px solid #000;
+            outline-offset: 4px;
+        }
+
+        /* phones: icons a bit larger relative to the painting */
         @media (max-width: 600px) {
-            .strip {
-                height: 35vh;
+            .icon {
+                --icon-scale: 1.3;
             }
+        }
+
+        /* placement mode helpers */
+        .placing {
+            cursor: crosshair;
+        }
+
+        .placing .icon {
+            outline: 1px dashed red;
+            pointer-events: none;
+            /* clicks go through to the painting */
+        }
+
+        .marker {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border: 2px solid red;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .readout {
+            position: fixed;
+            left: 16px;
+            bottom: 16px;
+            z-index: 3;
+            padding: 6px 10px;
+            background: #fff;
+            border: 1px solid #000;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre;
         }
     </style>
 </head>
 
 <body>
+    <h1 class="title">look around...</h1>
 
-    <div class="strip">
-        <img src="sequences/griffin/Angels won_t help.jpg" alt="">
-        <img src="sequences/griffin/Factory-made.jpg" alt="">
-        <img src="sequences/griffin/Finals-01.jpg" alt="">
-        <img src="sequences/griffin/Finals-03.jpg" alt="">
-        <img src="sequences/griffin/Finals-22.jpg" alt="">
-        <img src="sequences/griffin/Finals-24.jpg" alt="">
-    </div>
-     <div class="strip">
-        <img src="sequences/charlotte/5.JPG" alt="">
-               <img src="sequences/charlotte/1.JPG" alt="">
-                     
+    <main class="page" id="page">
+        <img class="bg" src="cycle0/sequences/background.jpg" width="3200" height="7606" alt="" decoding="async">
+    </main>
 
+    <script>
+        /* =====================================================================
+           ICON SETTINGS — edit these by hand
+           x, y : position of the icon's CENTER, in % of the painting
+                  (0,0 = top-left corner, 100,100 = bottom-right corner)
+           size : icon width, in % of the painting's width
+           href : link to that person's project
+           ===================================================================== */
+        const ICONS = [
+            { name: "Amandine", file: "amandine.png", x: 86.8, y: 65.2, size: 6, href: "sequences/amandine.html" },
+            { name: "Bobby", file: "bobby.png", x: 22.8, y: 88.2, size: 20, href: "sequences/bobby.html" },
+            { name: "Charlotte", file: "charlotte.png", x: 62, y: 57, size: 30, href: "sequences/charlotte.html" },
+            { name: "Clay", file: "clay.png", x: 80, y: 90, size: 20, href: "sequences/clay.html" },
+            { name: "Dominic", file: "dominic.png", x: 30, y: 42, size: 12, href: "sequences/dominic.html" },
+            { name: "Griffin", file: "griffin.png", x: 15.7, y: 62, size: 30, href: "sequences/griffin.html" },
+            { name: "Julia", file: "julia.png", x: 72.5, y: 70.5, size: 8, href: "sequences/julia.html" },
+            { name: "Lucas", file: "lucas.png", x: 69, y: 42, size: 12, href: "sequences/lucas.html" },
+            { name: "Noah", file: "noah.png", x: 60, y: 22.5, size: 8, href: "sequences/noah.html" },
+            { name: "Sabine", file: "sabine.png", x: 61.1, y: 72.5, size: 5, href: "sequences/sabine.html" },
+            { name: "Riley", file: "riley.png", x: 72.9, y: 33, size: 8, href: "sequences/riley.html" },
+        ];
 
-    </div>
-    
+        /* PLACEMENT MODE — set to true, then click anywhere on the painting to
+           see that spot's x/y in a box at the bottom-left of the screen.
+           Icon links are disabled while it's on. Set back to false when done. */
+        const PLACEMENT_MODE = false;
 
-    <div class="content">
-        <h1>Sequence</h1>
-    </div>
+        const page = document.getElementById("page");
 
-     <div class="strip">
-        <img src="sequences/charlotte/6.JPG" alt="">
-               <img src="sequences/charlotte/2.JPG" alt="">
-                       <img src="sequences/charlotte/3.JPG" alt="">
-                       <img src="sequences/charlotte/4.JPG" alt="">
+        for (const icon of ICONS) {
+            const link = document.createElement("a");
+            link.className = "icon";
+            if (!PLACEMENT_MODE) link.href = icon.href; // no href = link disabled
+            link.style.setProperty("--x", icon.x + "%");
+            link.style.setProperty("--y", icon.y + "%");
+            link.style.setProperty("--size", icon.size + "%");
 
+            const img = document.createElement("img");
+            img.src = "cycle0/sequences/icons/" + icon.file;
+            img.alt = icon.name;
+            img.loading = "lazy";
+            img.decoding = "async";
 
+            link.appendChild(img);
+            page.appendChild(link);
+        }
 
-    </div>
+        if (PLACEMENT_MODE) {
+            page.classList.add("placing");
+
+            const marker = document.createElement("div");
+            marker.className = "marker";
+            marker.hidden = true;
+            page.appendChild(marker);
+
+            const readout = document.createElement("div");
+            readout.className = "readout";
+            readout.textContent = "click the painting";
+            document.body.appendChild(readout);
+
+            page.addEventListener("click", (e) => {
+                const rect = page.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+                const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+
+                marker.style.left = x + "%";
+                marker.style.top = y + "%";
+                marker.hidden = false;
+                readout.textContent = `x: ${x}%  y: ${y}%`;
+            });
+        }
+    </script>
 
 </body>
 
